@@ -26,7 +26,7 @@
 - This is an **unofficial, community-made** tool. It is **not affiliated with, endorsed by, or supported by** KTMicro, FiiO, Jade Audio, or any other vendor.
 - The software is provided **"as is", without warranty of any kind**. The authors and contributors accept **no responsibility** for bricked devices, data loss, voided warranties, or any other damage.
 - **The original firmware CANNOT be backed up.** The KT02H20 bootloader has no read command. After flashing, the stock firmware is gone unless you already have a copy of the stock image.
-- **Only flash an image made for your exact hardware.** The tool checks the image magic, size field and chip ID (`KT02H20B`) *before* erasing, but it cannot know whether a compatible-looking image is right for your specific model.
+- **Only flash an image made for your exact hardware.** The bundled `JadeAudio JA11_V2.2.bin` is a JadeAudio JA11 image that has only been tested on the Fransun KT02H20 dongle listed under *Tested setup* — do not use it on other models. The tool checks the image magic, size field and chip ID (`KT02H20B`) *before* erasing, but it cannot know whether a compatible-looking image is right for your specific model.
 - **Never interrupt a flash.** Use a charged phone, a good cable, and don't touch the connector while writing.
 - If a write fails, the dongle normally stays in bootloader mode (the boot ROM is not overwritten) and can be re-flashed with a valid image. **This is not guaranteed.**
 
@@ -46,13 +46,24 @@ If you are not comfortable with these risks, **do not use this tool.**
 
 | Device | App-mode USB ID | Status |
 |---|---|---|
-| JadeAudio JA11 (KT02H20B) | `31b2:2008` | Tested from Android/Termux, firmware V2.2 |
+| Fransun KT02H20 (chip `KT02H20B`) | `31b2:2008` | ✅ Tested — flashed with JadeAudio JA11 V2.2 firmware from Android/Termux (see below) |
 | Other KT02H20-based dongles | usually `31b2:xxxx` | Untested — may work |
 
 Bootloader mode always enumerates as `8888:cdc0` (CDC-ACM serial).
 If your dongle uses another vendor ID (e.g. `2972`), pass it **before** the subcommand: `--vid 0x2972`.
 
-You must supply the firmware image (`.bin`) yourself, obtained from your vendor. Images are **not** distributed with this project.
+The firmware image **`JadeAudio JA11_V2.2.bin`** is included in the root of this repository (chip `KT02H20B`, 67312 bytes, 67 packets). It is a **JadeAudio JA11** image and has only been tested on the Fransun KT02H20 dongle listed below. For any other dongle, use an image made for that exact device.
+
+### Tested setup
+
+| | |
+|---|---|
+| **Phone** | Xiaomi Redmi Note 11S 5G (Android, Termux + Termux:API) |
+| **Dongle** | Fransun KT02H20 (chip `KT02H20B`, app-mode ID `31b2:2008`) |
+| **Firmware flashed** | `JadeAudio JA11_V2.2.bin` (67312 bytes, 67 packets) |
+| **Result** | Flash completed 67/67. After re-plugging, the dongle shows up as **"USB-Audio - JadeAudio JA11"** in Android and plays audio normally |
+
+Your results on other phones or dongles may differ. Reports are welcome via issues.
 
 ---
 
@@ -63,7 +74,7 @@ You must supply the firmware image (`.bin`) yourself, obtained from your vendor.
 - Android phone with **USB OTG** support
 - [Termux](https://f-droid.org/packages/com.termux/) and [Termux:API](https://f-droid.org/packages/com.termux.api/) — install both from the **same source** (e.g. F-Droid)
 - A USB-C cable/adapter that lets the phone act as USB host
-- A firmware image for your dongle
+- The firmware image (`JadeAudio JA11_V2.2.bin`, already included in this repo)
 
 ### 1. Install dependencies
 
@@ -86,7 +97,7 @@ git clone https://github.com/dragonzords/KT02H20-FLASHER-RE.git
 cd KT02H20-FLASHER-RE
 ```
 
-Put your firmware image in this folder (or use its full path).
+The firmware `JadeAudio JA11_V2.2.bin` is already in the repo root, so there is nothing else to download.
 
 ### 3. Check that the dongle is detected
 
@@ -106,22 +117,28 @@ Android asks for USB permission — tap **Allow**.
 ### 4. Validate the image (safe, sends nothing)
 
 ```sh
-python3 ktflash.py image "firmware.bin"
-python3 ktflash.py flash "firmware.bin"        # dry run, nothing is written
+python3 ktflash.py image "JadeAudio JA11_V2.2.bin"
+python3 ktflash.py flash "JadeAudio JA11_V2.2.bin"        # dry run, nothing is written
 ```
 
-Make sure the chip ID matches your dongle (`KT02H20B`) and the size/packet count look sane.
+Expected output of the dry run:
+
+```
+image: JadeAudio JA11_V2.2.bin  chip=KT02H20B  67312 bytes  67 packets
+```
+
+Make sure the chip ID matches your dongle (`KT02H20B`).
 
 ### 5. Flash
 
 ```sh
-python3 ktflash.py flash "firmware.bin" --execute --yes --no-backup-ok
+python3 ktflash.py flash "JadeAudio JA11_V2.2.bin" --execute --yes --no-backup-ok
 ```
 
 With a non-default vendor ID:
 
 ```sh
-python3 ktflash.py --vid 0x2972 flash "firmware.bin" --execute --yes --no-backup-ok
+python3 ktflash.py --vid 0x2972 flash "JadeAudio JA11_V2.2.bin" --execute --yes --no-backup-ok
 ```
 
 What happens:
@@ -166,7 +183,7 @@ Writing requires **all three** of `--execute --yes --no-backup-ok`.
 ```sh
 pip install pyserial hidapi
 python3 ktflash.py probe
-python3 ktflash.py flash "firmware.bin" --execute --yes --no-backup-ok
+python3 ktflash.py flash "JadeAudio JA11_V2.2.bin" --execute --yes --no-backup-ok
 ```
 
 - **Linux:** the HID step uses `/dev/hidraw`; on permission errors add a udev rule for the dongle or run with `sudo`.
@@ -213,5 +230,7 @@ Android apps get no `/dev/hidraw` or `/dev/ttyACM*` nodes. On Termux the tool th
 
 - **[txtsamu](https://github.com/txtsamu)** — original research and tooling this project is forked from.
 - Protocol details derived from reverse engineering of the vendor KT_USB_BOOT updater.
+
+The bundled firmware image is the property of its respective owner and is included only for convenience of JA11 owners; no ownership is claimed over it.
 
 KTMicro, FiiO, Jade Audio and all other product names are trademarks of their respective owners and are used for identification only.
