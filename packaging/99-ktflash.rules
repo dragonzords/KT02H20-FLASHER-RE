@@ -1,0 +1,5 @@
+# Let the logged-in user talk to KT02H20 dongles (normal mode HID + bootloader CDC-ACM).
+# Install: sudo cp 99-ktflash.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo udevadm trigger
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="31b2", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="2972", ATTRS{idProduct}=="0102", TAG+="uaccess"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="8888", ATTRS{idProduct}=="cdc0", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
